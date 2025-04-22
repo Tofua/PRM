@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRM Pure-Visual UI Mockup</title>
+    <style>
+        :root {
+            --split: 0.65; /* Initial split ratio */
+            --brandBlue: #0066ff;
+            --stageInpatient: #e0f7fa;
+            --stageSurgery: #fff3e0;
+            --stageOutpatient: #f1f8e9;
+            --stageFollowup: #f3e5f5;
+            --surface: #f9f9f9;
+            --textPrimary: #212121;
+            --textSecondary: #616161;
+            --splitHandleColor: #e0e0e0;
+            --splitHandleDotColor: #9e9e9e;
+        }
+        
+        /* Tooltip styles */
+        #patientTooltip {
+            display: none;
+            transition: opacity 0.3s;
+            font-size: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro", sans-serif;
+        }
+
+        body {
+            background-color: #333; /* Dark slate to suggest iPad bezel */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #ipad-container {
+            position: relative;
+            width: 768px;
+            height: 1024px;
+            background-color: white;
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        #app {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--surface);
+        }
+
+        #boardPane {
+            flex-basis: calc(var(--split) * 100%);
+            min-height: 20%;
+            max-height: 80%;
+            position: relative;
+            background-color: #f5f5f5;
+            overflow: hidden;
+        }
+
+        #splitHandle {
+            height: 6px;
+            background-color: var(--splitHandleColor);
+            cursor: row-resize;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+        }
+
+        #splitHandleDot {
+            width: 30px;
+            height: 4px;
+            background-color: var(--splitHandleDotColor);
+            border-radius: 2px;
+        }
+
+        #chatPane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        #filtersDrawer {
+            position: absolute;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background-color: #333;
+            transition: transform 0.3s ease;
+            z-index: 10;
+            padding: 16px;
+            color: white;
+        }
+
+        #filtersDrawer.open {
+            transform: translateX(280px);
+        }
+
+        #filterToggle {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            width: 36px;
+            height: 36px;
+            border-radius: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 5;
+        }
+
+        #kanbanWrapper {
+            display: flex;
+            overflow-x: auto;
+            height: 100%;
+            padding: 10px;
+        }
+
+        .stageCol {
+            flex: 0 0 240px;
+            margin-right: 12px;
+            border-radius: 8px;
+            overflow-y: auto;
+            height: 100%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stageHeader {
+            height: 44px;
+            padding: 0 15px;
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        .patientContainer {
+            padding: 0 10px 10px 10px;
+        }
+
+        .patientTab {
+            width: 220px;
+            height: 64px;
+            background-color: white;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            padding: 10px 15px;
+            cursor: grab;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+
+        .patientTab:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .patientTab:active {
+            opacity: 0.7;
+            transform: scale(1.02);
+        }
+
+        .patientName {
+            font-weight: bold;
+            color: var(--textPrimary);
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .patientInfo {
+            color: var(--textSecondary);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #chatScroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .chatBubble {
+            max-width: 80%;
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 18px;
+        }
+
+        .chatBubble.doctor {
+            align-self: flex-end;
+            background-color: var(--brandBlue);
+            color: white;
+            margin-left: auto;
+        }
+
+        .chatBubble.ai {
+            background-color: #f1f1f1;
+            color: var(--textPrimary);
+        }
+
+        #chatInputBar {
+            height: 56px;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            background-color: #f9f9f9;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        #micBtn {
+            width: 36px;
+            height: 36px;
+            border-radius: 18px;
+            background-color: #f1f1f1;
+            margin-right: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        #textarea {
+            flex: 1;
+            border: none;
+            background-color: #f1f1f1;
+            border-radius: 20px;
+            padding: 10px 15px;
+            min-height: 40px;
+            max-height: 80px;
+            resize: none;
+            outline: none;
+            font-size: 16px;
+        }
+
+        #sendBtn {
+            width: 36px;
+            height: 36px;
+            border-radius: 18px;
+            background-color: var(--brandBlue);
+            margin-left: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            cursor: pointer;
+        }
+
+        #sideTabs {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 5;
+        }
+
+        .sideTabIcon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        #focusOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        #focusCard {
+            width: 760px;
+            height: 600px;
+            background-color: white;
+            border-radius: 24px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .headerBar {
+            height: 60px;
+            background-color: var(--brandBlue);
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            justify-content: space-between;
+        }
+
+        .headerTitle {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .closeBtn {
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .sectionGrid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 15px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .section {
+            background-color: #f9f9f9;
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .sectionTitle {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .grabHandle {
+            cursor: grab;
+            margin-right: 8px;
+            color: #999;
+        }
+
+        /* Side sheet for reports */
+        #sideSheet {
+            position: absolute;
+            top: 0;
+            right: -380px;
+            width: 380px;
+            height: 100%;
+            background-color: white;
+            z-index: 20;
+            transition: transform 0.3s ease;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        #sideSheet.open {
+            transform: translateX(-380px);
+        }
+
+        .sideSheetHeader {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid #e0e0e0;
+            justify-content: space-between;
+        }
+
+        .reportList {
+            padding: 15px;
+        }
+
+        .reportItem {
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f5f5f5;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .newTemplate {
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px dashed #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--brandBlue);
+            cursor: pointer;
+        }
+
+        /* Filter chips */
+        .filterChip {
+            display: inline-block;
+            padding: 6px 12px;
+            background-color: #444;
+            border-radius: 16px;
+            margin: 0 5px 10px 0;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .filterChip.active {
+            background-color: var(--brandBlue);
+        }
+
+        /* Ensure app stays in iPad proportions */
+        @media only screen and (max-width: 768px), (max-height: 1024px) {
+            #ipad-container {
+                transform: scale(0.8);
+            }
+        }
+
+        @media only screen and (max-width: 615px), (max-height: 820px) {
+            #ipad-container {
+                transform: scale(0.6);
+            }
+        }
+
+        @media only screen and (max-width: 461px), (max-height: 615px) {
+            #ipad-container {
+                transform: scale(0.45);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="ipad-container">
+        <div id="app">
+            <div id="boardPane">
+                <div id="filterToggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                </div>
+                <div id="filtersDrawer">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3>Filters</h3>
+                        <div class="closeBtn" id="filterCloseBtn" style="cursor: pointer; font-size: 20px;">&times;</div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <div class="filterChip active">Critical</div>
+                        <div class="filterChip">Urgent</div>
+                        <div class="filterChip">Stable</div>
+                        <div class="filterChip">Non-urgent</div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <h4>Age Range</h4>
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <input type="text" placeholder="Min" style="width: 60px; padding: 5px; background: #444; border: 1px solid #555; color: white;">
+                            <input type="text" placeholder="Max" style="width: 60px; padding: 5px; background: #444; border: 1px solid #555; color: white;">
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <h4>Date Range</h4>
+                        <input type="text" placeholder="From" style="width: 100%; padding: 5px; margin-top: 10px; background: #444; border: 1px solid #555; color: white;">
+                        <input type="text" placeholder="To" style="width: 100%; padding: 5px; margin-top: 10px; background: #444; border: 1px solid #555; color: white;">
+                    </div>
+                </div>
+                <div id="kanbanWrapper">
+                    <div class="stageCol" style="background-color: var(--stageInpatient);">
+                        <div class="stageHeader" style="background-color: var(--stageInpatient);">
+                            Inpatient (3)
+                        </div>
+                        <div class="patientContainer">
+                            <div class="patientTab">
+                                <div class="patientName">James Smith</div>
+                                <div class="patientInfo">42Y • MRN: 78923</div>
+                            </div>
+                            <div class="patientTab">
+                                <div class="patientName">Sarah Johnson</div>
+                                <div class="patientInfo">67Y • MRN: 45126</div>
+                            </div>
+                            <div class="patientTab">
+                                <div class="patientName">Michael Davis</div>
+                                <div class="patientInfo">55Y • MRN: 98732</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stageCol" style="background-color: var(--stageSurgery);">
+                        <div class="stageHeader" style="background-color: var(--stageSurgery);">
+                            Surgery (2)
+                        </div>
+                        <div class="patientContainer">
+                            <div class="patientTab">
+                                <div class="patientName">Robert Wilson</div>
+                                <div class="patientInfo">61Y • MRN: 36794</div>
+                            </div>
+                            <div class="patientTab">
+                                <div class="patientName">Emily Chen</div>
+                                <div class="patientInfo">29Y • MRN: 12546</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stageCol" style="background-color: var(--stageOutpatient);">
+                        <div class="stageHeader" style="background-color: var(--stageOutpatient);">
+                            Outpatient (4)
+                        </div>
+                        <div class="patientContainer">
+                            <div class="patientTab">
+                                <div class="patientName">David Lee</div>
+                                <div class="patientInfo">33Y • MRN: 56721</div>
+                            </div>
+                            <div class="patientTab">
+                                <div class="patientName">Patricia Martinez</div>
+                                <div class="patientInfo">47Y • MRN: 38945</div>
+                            </div>
+                            <div class="patientTab">
+                                <div class="patientName">Thomas Wright</div>
+                                <div class="patientInfo">52Y • MRN: 90235</div>
+                            </div>
+                            <div class="patientTab">
+                                <div class="patientName">Jessica Brown</div>
+                                <div class="patientInfo">38Y • MRN: 45732</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stageCol" style="background-color: var(--stageFollowup);">
+                        <div class="stageHeader" style="background-color: var(--stageFollowup);">
+                            Follow-up (2)
+                        </div>
+                        <div class="patientContainer">
+                            <div class="patientTab">
+                                <div class="patientName">Linda Thompson</div>
+                                <div class="patientInfo">71Y • MRN: 83492</div>
+                            </div>
+                            <div class="patientTab">
+                                <div class="patientName">Kevin Garcia</div>
+                                <div class="patientInfo">44Y • MRN: 29465</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="splitHandle">
+                <div id="splitHandleDot"></div>
+            </div>
+            <div id="chatPane">
+                <div id="chatScroll">
+                    <div class="chatBubble ai">
+                        Good morning Dr. Adams. How can I assist you with your patients today?
+                    </div>
+                    <div class="chatBubble doctor">
+                        I need to prepare for my rounds. Show me all critical patients in the inpatient ward.
+                    </div>
+                    <div class="chatBubble ai">
+                        I've identified 1 critical patient in the inpatient ward:<br><br>
+                        <b>James Smith, 42Y</b> - Admitted yesterday with acute respiratory distress. Latest vitals show elevated heart rate (112 bpm) and decreasing O2 saturation (91%). Lab results pending.
+                    </div>
+                    <div class="chatBubble doctor">
+                        Thanks. Please notify respiratory therapy about James Smith and schedule a follow-up chest X-ray for this afternoon.
+                    </div>
+                </div>
+                <div id="chatInputBar">
+                    <div id="micBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                            <line x1="12" y1="19" x2="12" y2="23"></line>
+                            <line x1="8" y1="23" x2="16" y2="23"></line>
+                        </svg>
+                    </div>
+                    <textarea id="textarea" placeholder="Type your message..."></textarea>
+                    <div id="sendBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Side Tabs -->
+            <div id="sideTabs">
+                <div class="sideTabIcon" id="reportsTabIcon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                </div>
+                <div class="sideTabIcon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </div>
+                <div class="sideTabIcon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Side Sheet for Reports -->
+            <div id="sideSheet">
+                <div class="sideSheetHeader">
+                    <h3>Reports</h3>
+                    <div class="closeBtn">&times;</div>
+                </div>
+                <div class="reportList">
+                    <div class="reportItem">Daily Ward Summary</div>
+                    <div class="reportItem">Patient Discharge Summary</div>
+                    <div class="reportItem">Medication Reconciliation</div>
+                    <div class="reportItem">Surgical Procedure Report</div>
+                    <div class="reportItem">Follow-up Visit Notes</div>
+                    <div class="newTemplate">+ New Template</div>
+                </div>
+            </div>
+
+            <!-- Patient Focus Overlay -->
+            <div id="focusOverlay">
+                <div id="focusCard">
+                    <div class="headerBar">
+                        <div class="headerTitle">James Smith • 42Y • MRN: 78923</div>
+                        <div class="closeBtn">&times;</div>
+                    </div>
+                    <div class="sectionGrid">
+                        <div class="section">
+                            <div class="sectionTitle">
+                                <span class="grabHandle">⋮⋮</span> Vital Signs
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                                <div style="background: #f5f5f5; padding: 10px; border-radius: 8px;">
+                                    <div style="font-size: 12px; color: #666;">Heart Rate</div>
+                                    <div style="font-size: 18px; font-weight: bold; color: #f44336;">112 bpm</div>
+                                </div>
+                                <div style="background: #f5f5f5; padding: 10px; border-radius: 8px;">
+                                    <div style="font-size: 12px; color: #666;">BP</div>
+                                    <div style="font-size: 18px; font-weight: bold;">138/85</div>
+                                </div>
+                                <div style="background: #f5f5f5; padding: 10px; border-radius: 8px;">
+                                    <div style="font-size: 12px; color: #666;">O₂ Sat</div>
+                                    <div style="font-size: 18px; font-weight: bold; color: #fb8c00;">91%</div>
+                                </div>
+                                <div style="background: #f5f5f5; padding: 10px; border-radius: 8px;">
+                                    <div style="font-size: 12px; color: #666;">Temp</div>
+                                    <div style="font-size: 18px; font-weight: bold;">38.2°C</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="section">
+                            <div class="sectionTitle">
+                                <span class="grabHandle">⋮⋮</span> Conditions
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                <span style="background: #e8f5e9; padding: 6px 12px; border-radius: 16px; font-size: 14px;">Asthma</span>
+                                <span style="background: #ffebee; padding: 6px 12px; border-radius: 16px; font-size: 14px;">Pneumonia</span>
+                                <span style="background: #e3f2fd; padding: 6px 12px; border-radius: 16px; font-size: 14px;">Hypertension</span>
+                                <span style="background: #fff8e1; padding: 6px 12px; border-radius: 16px; font-size: 14px;">Type 2 Diabetes</span>
+                            </div>
+                        </div>
+                        <div class="section">
+                            <div class="sectionTitle">
+                                <span class="grabHandle">⋮⋮</span> Medications
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <div style="display: flex; align-items: center;">
+                                    <div style="width: 12px; height: 12px; border-radius: 50%; background-color: #4caf50; margin-right: 8px;"></div>
+                                    <div>Albuterol 90mcg - 2 puffs q6h</div>
+                                </div>
+                                <div style="display: flex; align-items: center;">
+                                    <div style="width: 12px; height: 12px; border-radius: 50%; background-color: #2196f3; margin-right: 8px;"></div>
+                                    <div>Lisinopril 10mg - Daily</div>
+                                </div>
+                                <div style="display: flex; align-items: center;">
+                                    <div style="width: 12px; height: 12px; border-radius: 50%; background-color: #ff9800; margin-right: 8px;"></div>
+                                    <div>Metformin 500mg - BID</div>
+                                </div>
+                                <div style="display: flex; align-items: center;">
+                                    <div style="width: 12px; height: 12px; border-radius: 50%; background-color: #f44336; margin-right: 8px;"></div>
+                                    <div>Azithromycin 500mg - Daily</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="section">
+                            <div class="sectionTitle">
+                                <span class="grabHandle">⋮⋮</span> Timeline
+                            </div>
+                            <div style="display: flex; flex-direction: column;">
+                                <div style="display: flex; margin-bottom: 15px;">
+                                    <div style="width: 20px; height: 20px; border-radius: 50%; background-color: var(--brandBlue); margin-right: 10px; flex-shrink: 0;"></div>
+                                    <div>
+                                        <div style="font-weight: bold;">Admission</div>
+                                        <div style="font-size: 14px; color: #666;">Yesterday, 3:45 PM</div>
+                                        <div style="font-size: 14px; margin-top: 3px;">Admitted with respiratory distress and fever</div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; margin-bottom: 15px;">
+                                    <div style="width: 20px; height: 20px; border-radius: 50%; background-color: var(--brandBlue); margin-right: 10px; flex-shrink: 0;"></div>
+                                    <div>
+                                        <div style="font-weight: bold;">Chest X-ray</div>
+                                        <div style="font-size: 14px; color: #666;">Today, 9:15 AM</div>
+                                        <div style="font-size: 14px; margin-top: 3px;">Results show bilateral infiltrates consistent with pneumonia</div>
+                                    </div>
+                                </div>
+                                <div style="display: flex;">
+                                    <div style="width: 20px; height: 20px; border-radius: 50%; background-color: var(--brandBlue); margin-right: 10px; flex-shrink: 0;"></div>
+                                    <div>
+                                        <div style="font-weight: bold;">Medication Change</div>
+                                        <div style="font-size: 14px; color: #666;">Today, 10:30 AM</div>
+                                        <div style="font-size: 14px; margin-top: 3px;">Started on IV antibiotics (Ceftriaxone 1g q12h)</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get elements
+        const splitHandle = document.getElementById('splitHandle');
+        const app = document.getElementById('app');
+        const boardPane = document.getElementById('boardPane');
+        const filterToggle = document.getElementById('filterToggle');
+        const filtersDrawer = document.getElementById('filtersDrawer');
+        const reportsTabIcon = document.getElementById('reportsTabIcon');
+        const sideSheet = document.getElementById('sideSheet');
+        const patientTabs = document.querySelectorAll('.patientTab');
+        const focusOverlay = document.getElementById('focusOverlay');
+        const closeBtns = document.querySelectorAll('.closeBtn');
+        
+        // Initial split value
+        let splitRatio = 0.65;
+        
+        // Handle the split resize functionality
+        splitHandle.addEventListener('mousedown', initResize);
+        
+        function initResize(e) {
+            e.preventDefault();
+            document.addEventListener('mousemove', resize);
+            document.addEventListener('mouseup', stopResize);
+        }
+        
+        function resize(e) {
+            const appRect = app.getBoundingClientRect();
+            const newSplit = (e.clientY - appRect.top) / appRect.height;
+            
+            // Expanded range to allow more chat reduction (down to 0.1)
+            if (newSplit >= 0.1 && newSplit <= 0.8) {
+                splitRatio = newSplit;
+                document.documentElement.style.setProperty('--split', splitRatio);
+            }
+        }
+        
+        function stopResize() {
+            document.removeEventListener('mousemove', resize);
+            document.removeEventListener('mouseup', stopResize);
+        }
+        
+        // Toggle filters drawer
+        filterToggle.addEventListener('click', function() {
+            filtersDrawer.classList.toggle('open');
+        });
+        
+        // Close filters drawer
+        document.getElementById('filterCloseBtn').addEventListener('click', function() {
+            filtersDrawer.classList.remove('open');
+        });
+        
+        // Toggle side sheet for reports
+        reportsTabIcon.addEventListener('click', function() {
+            sideSheet.classList.toggle('open');
+        });
+        
+        // Handle patient focus view and normal click
+        patientTabs.forEach(tab => {
+            let pressTimer;
+            
+            // Long press to show focus overlay
+            tab.addEventListener('mousedown', function() {
+                pressTimer = window.setTimeout(function() {
+                    focusOverlay.style.display = 'flex';
+                }, 600);
+            });
+            
+            // Normal click to show quick info tooltip
+            tab.addEventListener('click', function(e) {
+                // Create or get existing tooltip
+                let tooltip = document.getElementById('patientTooltip');
+                if (!tooltip) {
+                    tooltip = document.createElement('div');
+                    tooltip.id = 'patientTooltip';
+                    tooltip.style.position = 'absolute';
+                    tooltip.style.backgroundColor = 'white';
+                    tooltip.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+                    tooltip.style.borderRadius = '8px';
+                    tooltip.style.padding = '12px';
+                    tooltip.style.zIndex = '50';
+                    tooltip.style.maxWidth = '280px';
+                    document.body.appendChild(tooltip);
+                }
+                
+                // Set content based on patient
+                const patientName = this.querySelector('.patientName').textContent;
+                tooltip.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 5px;">${patientName}</div>
+                    <div style="font-size: 14px; margin-bottom: 8px;">Last updated: Today, 11:30 AM</div>
+                    <div style="display: flex; gap: 8px; margin-bottom: 5px;">
+                        <span style="color: #f44336;">♥ 112</span>
+                        <span style="color: #2196f3;">BP 138/85</span>
+                        <span style="color: #ff9800;">O₂ 91%</span>
+                    </div>
+                    <div style="font-size: 13px;">Click for actions, long-press for details</div>
+                `;
+                
+                // Position the tooltip near the patient tab
+                const rect = this.getBoundingClientRect();
+                tooltip.style.left = rect.right + 10 + 'px';
+                tooltip.style.top = rect.top + 'px';
+                
+                // Show the tooltip
+                tooltip.style.display = 'block';
+                
+                // Hide after 3 seconds
+                setTimeout(() => {
+                    tooltip.style.display = 'none';
+                }, 3000);
+            });
+            
+            tab.addEventListener('mouseup', function() {
+                clearTimeout(pressTimer);
+            });
+            
+            tab.addEventListener('mouseleave', function() {
+                clearTimeout(pressTimer);
+            });
+        });
+        
+        // Close buttons functionality
+        closeBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.closest('#focusOverlay, #sideSheet').style.display = 'none';
+                sideSheet.classList.remove('open');
+            });
+        });
+        
+        // Make the textarea grow with content
+        const textarea = document.getElementById('textarea');
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+        
+        // Simulated draggable functionality for patient tabs
+        patientTabs.forEach(tab => {
+            tab.setAttribute('draggable', true);
+            
+            tab.addEventListener('dragstart', function(e) {
+                e.dataTransfer.setData('text/plain', 'dragging');
+                setTimeout(() => {
+                    this.style.opacity = '0.7';
+                }, 0);
+            });
+            
+            tab.addEventListener('dragend', function() {
+                this.style.opacity = '1';
+            });
+        });
+        
+        const stageCols = document.querySelectorAll('.stageCol');
+        stageCols.forEach(col => {
+            col.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.style.boxShadow = '0 0 10px rgba(0,105,255,0.5)';
+            });
+            
+            col.addEventListener('dragleave', function() {
+                this.style.boxShadow = 'none';
+            });
+            
+            col.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.boxShadow = 'none';
+                const header = this.querySelector('.stageHeader');
+                header.style.backgroundColor = header.style.backgroundColor;
+                
+                // Flash the header
+                header.style.transition = 'background-color 0.4s';
+                const originalColor = header.style.backgroundColor;
+                header.style.backgroundColor = 'rgba(255,255,255,0.8)';
+                setTimeout(() => {
+                    header.style.backgroundColor = originalColor;
+                    setTimeout(() => {
+                        header.style.transition = '';
+                    }, 400);
+                }, 400);
+            });
+        });
+    </script>
+</body>
+</html>
