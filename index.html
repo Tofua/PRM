@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PRM Pure-Visual UI Mockup</title>
     <style>
         :root {
@@ -31,6 +31,32 @@
             margin: 0;
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro", sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        /* Allow text input in specific elements */
+        input, textarea {
+            -webkit-user-select: text;
+            -khtml-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+        
+        html, body {
+            overscroll-behavior: none; /* Prevent pull-to-refresh */
+            overflow: hidden;
+            touch-action: none;
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
         }
 
         body {
@@ -38,8 +64,13 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
             overflow: hidden;
+            position: fixed; /* Prevent bounce/scroll on mobile */
         }
 
         #ipad-container {
@@ -50,6 +81,7 @@
             border-radius: 30px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform-origin: center center;
         }
 
         #app {
@@ -435,18 +467,58 @@
         @media only screen and (max-width: 768px), (max-height: 1024px) {
             #ipad-container {
                 transform: scale(0.8);
+                transform-origin: center center;
             }
         }
 
         @media only screen and (max-width: 615px), (max-height: 820px) {
             #ipad-container {
                 transform: scale(0.6);
+                transform-origin: center center;
             }
         }
 
         @media only screen and (max-width: 461px), (max-height: 615px) {
             #ipad-container {
                 transform: scale(0.45);
+                transform-origin: center center;
+            }
+        }
+        
+        /* Mobile-specific scaling */
+        @media only screen and (max-device-width: 480px) {
+            body {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                overflow: hidden;
+                touch-action: none;
+            }
+            
+            #ipad-container {
+                transform: scale(0.4);
+                transform-origin: center center;
+                max-width: 100vw;
+                max-height: 100vh;
+            }
+        }
+        
+        /* Safari-specific fixes */
+        @supports (-webkit-touch-callout: none) {
+            body {
+                /* Prevent overscroll/bounce effect on iOS */
+                position: fixed;
+                width: 100%;
+                height: 100%;
+            }
+            
+            #ipad-container {
+                /* Added for better iOS compatibility */
+                -webkit-transform: scale(0.4);
+                -webkit-transform-origin: center center;
+                transform: scale(0.4);
+                transform-origin: center center;
             }
         }
     </style>
@@ -741,6 +813,43 @@
     </div>
 
     <script>
+        // Add a specific "viewport lock" function for mobile Safari
+        function lockViewport() {
+            // Get the current dimensions
+            const vh = window.innerHeight;
+            const vw = window.innerWidth;
+            
+            // Force the size to current dimensions
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+            document.documentElement.style.setProperty('--vw', `${vw}px`);
+            
+            // Set up the iPad container to maintain aspect ratio
+            const ipadContainer = document.getElementById('ipad-container');
+            
+            // Calculate scale to fit while maintaining aspect ratio
+            const targetRatio = 1024 / 768; // iPad height/width
+            const windowRatio = vh / vw;
+            
+            let scale;
+            if (windowRatio > targetRatio) {
+                // Window is taller than iPad ratio, fit to width
+                scale = vw / 768 * 0.9;
+            } else {
+                // Window is wider than iPad ratio, fit to height
+                scale = vh / 1024 * 0.9;
+            }
+            
+            // Apply the scale
+            ipadContainer.style.transform = `scale(${scale})`;
+        }
+        
+        // Call when page loads
+        window.addEventListener('load', lockViewport);
+        
+        // Call again if orientation changes
+        window.addEventListener('resize', lockViewport);
+        window.addEventListener('orientationchange', lockViewport);
+        
         // Get elements
         const splitHandle = document.getElementById('splitHandle');
         const app = document.getElementById('app');
