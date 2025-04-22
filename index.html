@@ -878,10 +878,23 @@
             const appRect = app.getBoundingClientRect();
             const newSplit = (e.clientY - appRect.top) / appRect.height;
             
-            // Expanded range to allow more chat reduction (down to 0.1)
-            if (newSplit >= 0.1 && newSplit <= 0.8) {
+            // Allow dragging to virtually any position (just keep a tiny bit for the input)
+            if (newSplit >= 0.1 && newSplit <= 0.99) {
                 splitRatio = newSplit;
                 document.documentElement.style.setProperty('--split', splitRatio);
+                
+                // Force redraw of the layout
+                const chatPane = document.getElementById('chatPane');
+                const chatScroll = document.getElementById('chatScroll');
+                
+                // When very close to bottom, just show input
+                if (newSplit > 0.94) {
+                    chatScroll.style.display = 'none';
+                    chatPane.style.overflow = 'hidden';
+                } else {
+                    chatScroll.style.display = 'block';
+                    chatPane.style.overflow = 'auto';
+                }
             }
         }
         
